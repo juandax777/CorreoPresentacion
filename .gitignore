@@ -12,6 +12,10 @@ target/
 *.iml
 *.ipr
 
+# Archivos de configuración con información sensible
+src/main/resources/application.properties
+
+
 ### Eclipse ###
 .apt_generated
 .classpath
