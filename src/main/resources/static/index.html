@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envío de Correos - Spring Boot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-send:active {
+            transform: translateY(0);
+        }
+
+        .btn-send:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📧 Envío de Correos</h1>
+    <p class="subtitle">Sistema de correo electrónico con Spring Boot</p>
+
+    <form id="emailForm">
+        <div class="form-group">
+            <label for="to">Destinatario (Para:)</label>
+            <input type="email" id="to" name="to" placeholder="ejemplo@correo.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Asunto</label>
+            <input type="text" id="subject" name="subject" placeholder="Escribe el asunto del correo" required>
+        </div>
+
+        <div class="form-group">
+            <label for="body">Mensaje</label>
+            <textarea id="body" name="body" placeholder="Escribe tu mensaje aquí..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-send" id="btnSend">
+            <span id="btnText">Enviar Correo</span>
+        </button>
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <div class="footer">
+        <p>© 2024 - Sistema de Correos | Powered by Spring Boot</p>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('emailForm');
+    const messageDiv = document.getElementById('message');
+    const btnSend = document.getElementById('btnSend');
+    const btnText = document.getElementById('btnText');
+
+    // URL de tu API (ajusta según tu configuración)
+    const API_URL = 'http://localhost:8080/api/email/send';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Obtener los valores del formulario
+        const emailData = {
+            to: document.getElementById('to').value,
+            subject: document.getElementById('subject').value,
+            body: document.getElementById('body').value
+        };
+
+        // Deshabilitar botón y mostrar loading
+        btnSend.disabled = true;
+        btnText.innerHTML = '<span class="loading"></span> Enviando...';
+        messageDiv.classList.remove('show');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showMessage('✅ Correo enviado exitosamente a ' + emailData.to, 'success');
+                form.reset();
+            } else {
+                showMessage('❌ Error: ' + (result.message || 'No se pudo enviar el correo'), 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('❌ Error de conexión: Verifica que el servidor esté funcionando en ' + API_URL, 'error');
+        } finally {
+            // Rehabilitar botón
+            btnSend.disabled = false;
+            btnText.textContent = 'Enviar Correo';
+        }
+    });
+
+    function showMessage(text, type) {
+        messageDiv.textContent = text;
+        messageDiv.className = 'message ' + type + ' show';
+
+        // Ocultar mensaje después de 5 segundos
+        setTimeout(() => {
+            messageDiv.classList.remove('show');
+        }, 5000);
+    }
+
+    // Prellenar el formulario con datos de ejemplo (opcional)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Puedes prellenar con el correo que mencionaste
+        document.getElementById('to').value = 'eaguiarg@ucentral.edu.co';
+        document.getElementById('subject').value = 'Prueba';
+        document.getElementById('body').value = 'Hola desde Spring Boot';
+    });
+</script>
+</body>
+</html>
