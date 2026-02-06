@@ -204,3 +204,11 @@ Para dudas o sugerencias, contacta al desarrollador del proyecto.
 ## 📄 Licencia
 
 Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+
+## PRUEBA DE FUNCIONAMIENTO
+
+<img width="654" height="736" alt="image" src="https://github.com/user-attachments/assets/979ad1d5-1085-402d-a9ac-871cecf447bc" />
+
+## PRUEBA CORREO ENVIADO
+
+<img width="642" height="315" alt="image" src="https://github.com/user-attachments/assets/4e154b64-4587-43ee-b52f-d3d839741304" />
